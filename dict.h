@@ -1,6 +1,5 @@
 #pragma once
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
 /*
     enum types represents type of dictionary
@@ -17,9 +16,10 @@ typedef struct dict_enrty{
 typedef struct dict{
     enum types dict_type;
     dict_entry **entries;
-    unsigned long long size;
+    size_t size;
 }dict;
 dict *dict_init(enum types type);
 int dict_insert(dict *D, void *key, void *value);
+int dict_deleteAt(dict *D, unsigned index);
 int dict_delete(dict *D, void *key);
 void *dict_search(dict *D);
