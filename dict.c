@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 
 
 //Internal Functions
@@ -11,9 +12,10 @@ void *dict_insert_str(void *str);
 dict_entry *dict_entry_init();
 void dict_entry_free(dict_entry *ptr);
 
-dict *dict_init(enum types type) {
+dict *dict_init(enum types key_type, enum types value_type) {
     dict *ptr = malloc(sizeof(dict));
-    ptr->dict_type = type;
+    ptr->key_type = key_type;
+    ptr->value_type = value_type;
     ptr->entries = NULL;
     ptr->size = 0;
     return ptr;
@@ -47,43 +49,80 @@ int dict_insert(dict *D, void *key, void *value) {
     D->entries[D->size] = ptr;
     ptr = NULL;
 
-    if (D->dict_type == num_num) {
+    // Key Insertion
+    if (D->key_type == num) {
         D->entries[D->size]->key = dict_insert_num(key);
-        D->entries[D->size]->value = dict_insert_num(value);
     }
-    else if (D->dict_type == num_str) {
-        D->entries[D->size]->key = dict_insert_num(key);
-        D->entries[D->size]->value = dict_insert_str(value);
-    }
-    else if (D->dict_type == str_str) {
+    else if (D->key_type == str) {
         D->entries[D->size]->key = dict_insert_str(key);
-        D->entries[D->size]->value = dict_insert_str(value);
-    }
-    else if (D->dict_type == str_num) {
-        D->entries[D->size]->key = dict_insert_str(key);
-        D->entries[D->size]->value = dict_insert_num(value);
     }
 
+    // Value Insertion
+    if(D->value_type == num){
+        D->entries[D->size]->value = dict_insert_num(value);
+    }
+    else if (D->value_type == str) {
+        D->entries[D->size]->value = dict_insert_str(value);
+    }
+
+    // If memory allocation fails
     if (D->entries[D->size]->key == NULL || D->entries[D->size]->value == NULL) {
         dict_entry_free(D->entries[D->size]);
         return -1;
     }
+
+    // If everything goes alright
     ++D->size;
     return 0;
 }
-int dict_deleteAt(dict *D, unsigned index) {
+
+//Deletes Dict Entry at a particular index
+int dict_deleteAt(dict *D, size_t index) {
     dict_entry_free(D->entries[index]);
+
+    //Moving all the Enrty ptrs to fill the space left by the above free() operation
     for(int i=index; i<D->size; ++i){
         D->entries[i] = D->entries[i+1];
     }
+    D->entries[D->size] = NULL;
     void *ptr = realloc(D->entries,sizeof(void *)*(D->size-1));
     if(ptr == NULL) {
+        fprintf(stderr, "Deletion successfull but reallocation failed dict size intact");
         return -2;
     }   
     D->entries = ptr;
     --D->size;
     return 0;
 }
+
+size_t dict_search(dict *D, void *key) {
+    if(D->key_type==num) { 
+        long long KEY = *(long long *)key;
+        for(size_t i = 0; i<D->size; ++i) {
+            if (*(unsigned long long *)D->entries[i]->key == KEY) {
+                return i;
+            } 
+        }
+    }
+    else if (D->key_type==str) {
+        size_t i = 0;
+        char *STR = key;
+        while (STR[i] != '\0' || i != (ULLONG_MAX-1))
+            ++i;
+        for (size_t j = 0; j<D->size; ++j) {
+            if (strncmp(STR, D->entries[j]->key, i) == 0) {
+                return j;
+            }
+        }
+    }
+    return -1;
+}
+int dict_delete(dict *D, void *key) {
+    size_t index = dict_search(D, key);
+    int ret = dict_deleteAt(D, index);
+    return ret;
+}
+
 void *dict_insert_num(void *num) {
     long long *ptr = malloc(sizeof(long long));
     if (ptr == NULL) {
@@ -95,7 +134,7 @@ void *dict_insert_num(void *num) {
     return ptr;
 }
 void *dict_insert_str(void *str) {
-    unsigned long long i = 0;
+    size_t i = 0;
     char *STR = str;
     while(STR[i] != '\0' || i != (ULLONG_MAX-1))
         ++i;
