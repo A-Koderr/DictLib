@@ -1,0 +1,6 @@
+add_executable(str_ins_del test01.c)
+add_executable(long_ins_del test02.c)
+target_link_libraries(str_ins_del PRIVATE dict_library)
+target_link_libraries(long_ins_del PRIVATE dict_library)
+add_test(NAME test_str COMMAND str_ins_del)
+add_test(NAME test_long COMMAND long_ins_del)

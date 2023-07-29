@@ -4,7 +4,7 @@
 /*
     enum types represents type of key/value in the dictionary
 */
-enum types{num, str};
+enum types{LONG, STR};
 typedef struct dict_enrty{
     void *key;
     void *value;
@@ -20,3 +20,5 @@ int dict_insert(dict *D, void *key, void *value);
 int dict_deleteAt(dict *D, size_t index);
 size_t dict_search(dict *D, void *key);
 int dict_delete(dict *D, void *key);
+void dict_free(dict *D);
+void dict_print(dict *D);
