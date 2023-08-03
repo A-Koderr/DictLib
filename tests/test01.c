@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "dict/dict_lib.h"
+#include "Dict/Dict.h"
 int main(void)
 {
     dict *ptr = dict_init(STR, STR);

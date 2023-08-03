@@ -1,4 +1,4 @@
-#include "dict/dict_lib.h"
+#include "Dict/Dict.h"
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,11 +8,14 @@
 
 //Internal Functions
 void *dict_insert_num(void *LONG);
-void *dict_insert_str(void *STR);
+void *dict_insert_str(void *str_ptr);
 dict_entry *dict_entry_init();
 void dict_entry_free(dict_entry *ptr);
 void dict_print_LONG(void *LONG);
-void dict_print_STR(void *STR);
+void dict_print_STR(void *str_ptr);
+
+void *_dict_insert_LONG(void *ptr_long);
+void *_dict_insert_STR(void *ptr_str);
 
 dict *dict_init(enum types key_type, enum types value_type) {
     dict *ptr = malloc(sizeof(dict));
@@ -53,18 +56,18 @@ int dict_insert(dict *D, void *key, void *value) {
 
     // Key Insertion
     if (D->key_type == LONG) {
-        D->entries[D->size]->key = dict_insert_num(key);
+        D->entries[D->size]->key = _dict_insert_LONG(key);
     }
     else if (D->key_type == STR) {
-        D->entries[D->size]->key = dict_insert_str(key);
+        D->entries[D->size]->key = _dict_insert_STR(key);
     }
 
     // Value Insertion
     if(D->value_type == LONG){
-        D->entries[D->size]->value = dict_insert_num(value);
+        D->entries[D->size]->value = _dict_insert_LONG(value);
     }
     else if (D->value_type == STR) {
-        D->entries[D->size]->value = dict_insert_str(value);
+        D->entries[D->size]->value = _dict_insert_STR(value);
     }
 
     //If memory allocation fails
@@ -110,11 +113,11 @@ size_t dict_search(dict *D, void *key) {
     }
     else if (D->key_type==STR) {
         size_t i = 0;
-        char *STR = key;
-        while (STR[i] != '\0' && i != (ULLONG_MAX-1))
+        char *str_ptr = key;
+        while (str_ptr[i] != '\0' && i != (ULLONG_MAX-1))
             ++i;
         for (size_t j = 0; j<D->size; ++j) {
-            if (strncmp(STR, D->entries[j]->key, i) == 0) {
+            if (strncmp(str_ptr, D->entries[j]->key, i) == 0) {
                 return j;
             }
         }
@@ -127,40 +130,77 @@ int dict_delete(dict *D, void *key) {
     return ret;
 }
 
-void *dict_insert_num(void *LONG) {
+// void *dict_insert_num(void *LONG) {
+//     long *ptr = NULL;
+//     if(LONG == NULL) {
+//         fprintf(stderr, "Passed a NULL ptr instead of long*. Dictionary Entry cannot be made.\n");
+//     }
+//     else {
+//         ptr = (long *)malloc(sizeof(long));
+//         if (ptr == NULL) {
+//             fprintf(stderr, "malloc failed while allocating %lu bytes for LONG", sizeof(long));
+//             return NULL;
+//         }
+//         *ptr = *(long *)LONG;
+//         }
+//     return ptr;
+// }
+// void *dict_insert_str(void *str_ptr) {
+//     char *ptr = NULL;
+//     if(str_ptr == NULL)
+//         fprintf(stderr, "Passed a NULL ptr instead of char*. Dictionary Entry cannot be made.\n");
+//     else {
+//         size_t i = 0;
+//         char *temp = (char *)str_ptr;
+//         while(temp[i] != '\0' && i != (ULLONG_MAX-1))
+//             ++i;
+//         ptr = malloc(sizeof(char)*(i+1));
+//         if (ptr == NULL) {
+//             fprintf(stderr, "malloc failed while allocating %lu bytes for STR", sizeof(char)*(i-1));
+//             return NULL;
+//         }
+//         strncpy(ptr, str_ptr, i);
+//         ptr[i] = '\0';
+//     }
+//     return ptr;
+// }
+
+void *_dict_insert_LONG(void *ptr_long) {
     long *ptr = NULL;
-    if(LONG == NULL) {
-        fprintf(stderr, "Passed a NULL ptr instead of long*. Dictionary Entry cannot be made.\n");
+    if(ptr_long == NULL) {
+        fprintf(stderr, "dict_insert : NULL ptr passed");
     }
     else {
         ptr = (long *)malloc(sizeof(long));
         if (ptr == NULL) {
-            fprintf(stderr, "malloc failed while allocating %lu bytes for LONG", sizeof(long));
+            fprintf(stderr, "dict_insert : malloc failed while allocating %lu bytes.", sizeof(long));
             return NULL;
         }
-        *ptr = *(long *)LONG;
+        *ptr = *(long *)ptr_long;
         }
     return ptr;
 }
-void *dict_insert_str(void *STR) {
+
+void *_dict_insert_STR(void *ptr_str) {
     char *ptr = NULL;
-    if(STR == NULL)
-        fprintf(stderr, "Passed a NULL ptr instead of char*. Dictionary Entry cannot be made.\n");
+    if(ptr_str == NULL)
+        fprintf(stderr, "dict_insert : NULL ptr passed");
     else {
         size_t i = 0;
-        char *temp = (char *)STR;
+        char *temp = (char *)ptr_str;
         while(temp[i] != '\0' && i != (ULLONG_MAX-1))
             ++i;
         ptr = malloc(sizeof(char)*(i+1));
         if (ptr == NULL) {
-            fprintf(stderr, "malloc failed while allocating %lu bytes for STR", sizeof(char)*(i-1));
+            fprintf(stderr, "dict_insert : malloc failed while allocating %lu.", sizeof(char)*(i+1));
             return NULL;
         }
-        strncpy(ptr, STR, i);
+        strncpy(ptr, ptr_str, i);
         ptr[i] = '\0';
     }
     return ptr;
 }
+
 void dict_entry_free(dict_entry *ptr) {
     if(ptr != NULL) {
         if(ptr->key != NULL)
@@ -184,11 +224,11 @@ void dict_print_LONG(void *LONG) {
     else
         printf("%ld", *(long *)LONG);
 }
-void dict_print_STR(void *STR) {
-    if(STR == NULL)
+void dict_print_STR(void *str_ptr) {
+    if(str_ptr == NULL)
         printf("(null)");
     else
-        printf("%s", (char *)STR);
+        printf("%s", (char *)str_ptr);
 }
 
 void dict_print(dict *D) {

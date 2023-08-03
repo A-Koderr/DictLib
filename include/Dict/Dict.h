@@ -1,10 +1,7 @@
 #pragma once
 #include <stddef.h>
+#include "EnumTypes.h"
 
-/*
-    enum types represents type of key/value in the dictionary
-*/
-enum types{LONG, STR};
 typedef struct dict_enrty{
     void *key;
     void *value;

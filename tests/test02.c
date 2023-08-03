@@ -1,4 +1,4 @@
-#include "dict/dict_lib.h"
+#include "Dict/Dict.h"
 #include <stdio.h>
 int main(void) {
     dict *D = dict_init(LONG, LONG);
